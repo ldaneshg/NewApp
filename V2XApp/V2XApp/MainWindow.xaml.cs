@@ -13,8 +13,9 @@ namespace V2XApp
         private SerialPort? serialPort;
         private Queue<char> buffer = new Queue<char>(16);
         private int confidenceCounter = 0;
+        private int errorCounter = 0;
         private const int confidenceThreshold = 1;
-        private string targetPattern = "0101010101010101";
+        private string targetPattern = "0011111000110100";
 
         public MainWindow()
         {
@@ -56,15 +57,22 @@ namespace V2XApp
                     {
                         string currentPattern = new string(buffer.ToArray());
                         if (currentPattern == targetPattern)
-                            confidenceCounter++;
-                        else
-                            confidenceCounter = Math.Max(0, confidenceCounter - 1);
-
-                        if (confidenceCounter == confidenceThreshold)
                         {
-                            confidenceCounter = 0;
+                            confidenceCounter++;
+                        }
+                        else
+                        {
+                            //confidenceCounter = Math.Max(0, confidenceCounter - 1);
+                            errorCounter++;
 
-                            Dispatcher.Invoke(async () => await FlashStatus(Status1, "Received at " + DateTime.Now.ToLongTimeString()));
+                        }
+                        Dispatcher.Invoke(async () => await FlashStatus(Status1, $"{confidenceCounter}"));
+                        Dispatcher.Invoke(async () => await FlashStatus(Status2, $"{errorCounter}"));
+                        if (confidenceCounter >= confidenceThreshold)
+                        {
+                        //    confidenceCounter = 0;
+
+                        //    Dispatcher.Invoke(async () => await FlashStatus(Status1,  "Received at " + DateTime.Now.ToLongTimeString()));
                         }
                     }
                 }
